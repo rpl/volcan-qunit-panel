@@ -1,0 +1,23 @@
+{
+  "name": "volcan-qunit-panel",
+  "title": "volcan-qunit-panel",
+  "description": "qunit volcan inside a devtool panel",
+  "main": "index.js",
+  "author": "Luca Greco",
+  "license": "MPL 2.0",
+  "version": "0.1.0",
+  "firefox-devtools": {
+    "panels": {
+      "repl": {
+        "label": "QUnitVolcan",
+        "url": "qunit.html",
+        "icon": "icon.png",
+        "tooltip": "Qunit Volcan Panel",
+        "RDP": true
+      }
+    }
+  },
+  "dependencies": {
+    "firefox-devtools": "git://github.com/rpl/firefox-devtools"
+  }
+}

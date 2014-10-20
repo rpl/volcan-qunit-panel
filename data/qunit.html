@@ -1,0 +1,102 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Refactored date examples</title>
+<link rel="stylesheet" href="http://code.jquery.com/qunit/qunit-1.15.0.css">
+<script src="http://code.jquery.com/qunit/qunit-1.15.0.js"></script>
+<script src="resource://sdk/dev/volcan.js"></script>
+<script>
+QUnit.module( "root", {
+  setup: setupVolcan
+});
+
+QUnit.asyncTest("listTabs", function( assert ) {
+  expect(5);
+
+  assert.ok(rootActor.listTabs, "root.listTabs method should be defined");
+
+  rootActor.listTabs().then(function(tabList) {
+    console.log("TAB LIST", tabList);
+    assert.ok(tabList, "tabList should be defined");
+    assert.ok(typeof tabList.selected === "number", "tabList.selected should be defined");
+    assert.ok(tabList.tabs, "tabList.tabs should be defined");
+    assert.ok(tabList.tabs.length, "labList.tabs should be an array of tab actors");
+  }).then(QUnit.start, function(e) {
+    assert.ok(false, "EXCEPTION: " + e);
+    QUnit.start();
+  });
+});
+
+var GLOBAL_ACTORS = [
+  "consoleActor", "styleSheetsActor", "inspectorActor",
+  "canvasActor", "chromeDebugger", "cssUsageActor", "deviceActor",
+  "directorRegistryActor",
+  "eventLoopLagActor", "framerateActor", "memoryActor",
+  "preferenceActor", "profilerActor", "styleEditorActor",
+  "timelineActor", "webappsActor", "webaudioActor", "webglActor"
+];
+
+for (var actorName of GLOBAL_ACTORS) {
+  QUnit.asyncTest("global " + actorName, assertGlobalActorIsDefined(actorName))
+}
+
+// Test Helpers
+
+var dbgPort = null;
+var rootActor = null;
+
+window.addEventListener("message", function handleEvent(evt) {
+  if (evt.data === "RDP") {
+    console.debug("PORT EVENT", evt);
+    window.removeEventListener("message", handleEvent);
+    window.dbgPort = evt.ports[0];
+
+    volcan.connect(dbgPort).then(function(rootActor) {
+      window.rootActor = rootActor;
+    });
+  }
+});
+
+function getRootActor() {
+  return new Promise(function (resolve, reject) {
+    if (window.rootActor) { resolve(); }
+    else {
+      setTimeout(function () {
+        if (window.rootActor) { resolve(); }
+        else { reject("timeout"); }
+      }, 500);
+    }
+  });
+}
+
+function setupVolcan(assert) {
+  QUnit.stop();
+  getRootActor().then(function () {
+    QUnit.start();
+  });
+}
+
+function assertGlobalActorIsDefined(actorName) {
+  return function( assert ) {
+    expect(1)
+
+    rootActor.listTabs().then(function(list) {
+      var globalActor = list[actorName];
+
+      console.log("GLOBAL ACTOR", actorName, globalActor);
+
+      assert.ok(globalActor, "global " + actorName + " should be defined");
+    }).then(QUnit.start, function(e) {
+      assert.ok(false, "EXCEPTION: " + e);
+      QUnit.start();
+    });
+  }
+}
+
+</script>
+</head>
+<body>
+<div id="qunit"></div>
+</body>
+</html>
